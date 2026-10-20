@@ -81,6 +81,7 @@ import {
 } from "./native-subagent-notification.js";
 import {
   canNativeParentConsumeCompletion,
+  hasNativeChildrenForParent,
   observeNativeParentTurn,
   registerNativeSubagentParent,
   type NativeParentRegistration,
@@ -454,7 +455,7 @@ class Monitor {
     }
     this.admissionCustody.retainOnly(() => false);
     for (const [parentThreadId] of this.parentStates) {
-      if (!this.hasChildrenForParent(parentThreadId)) {
+      if (!hasNativeChildrenForParent(this.childStates.values(), parentThreadId)) {
         this.parentStates.delete(parentThreadId);
       }
     }
@@ -1873,7 +1874,7 @@ class Monitor {
       this.submissions.hasCustody(state) ||
       state.owners.size > 0 ||
       this.childCloses.hasPending(state) ||
-      this.hasChildrenForParent(state.parentThreadId)
+      hasNativeChildrenForParent(this.childStates.values(), state.parentThreadId)
     ) {
       return true;
     }
@@ -1896,15 +1897,6 @@ class Monitor {
     const releaseParentThread = this.parentThreadRetentions.get(parentThreadId);
     this.parentThreadRetentions.delete(parentThreadId);
     releaseParentThread?.();
-  }
-
-  private hasChildrenForParent(parentThreadId: string): boolean {
-    for (const childState of this.childStates.values()) {
-      if (childState.parentThreadId === parentThreadId) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private pruneParentIfUnused(source: ParentState): void {

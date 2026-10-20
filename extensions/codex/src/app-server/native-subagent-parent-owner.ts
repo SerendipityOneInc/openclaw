@@ -8,6 +8,7 @@ import {
   notifyNativeModelSourceWaiters,
 } from "./native-subagent-model-source.js";
 import type {
+  ChildState,
   NativeModelBinding,
   NativeModelSource,
   NativeSubagentMonitorRuntime,
@@ -57,6 +58,18 @@ type ParentDependencies = {
   prune: (state: ParentState) => void;
   interruptModelExecution?: (threadId: string, turnId: string) => void;
 };
+
+export function hasNativeChildrenForParent(
+  children: Iterable<ChildState>,
+  parentThreadId: string,
+): boolean {
+  for (const child of children) {
+    if (child.parentThreadId === parentThreadId) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export function canNativeParentConsumeCompletion(state: ParentState, turnId?: string): boolean {
   if (
